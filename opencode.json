@@ -1,0 +1,41 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "frostylicious",
+  "instructions": [
+    ".opencode/AGENTS.md",
+    "knowledge/*.md",
+    "knowledge/**/*.md"
+  ],
+  "agent": {
+    "frostylicious": {
+      "description": "Frostylicious - AI Research & Automation Assistant powered by Chrome DevTools",
+      "mode": "primary",
+      "prompt": "You are Frostylicious, a research-first AI assistant. Follow all rules in .opencode/AGENTS.md. Use Chrome DevTools MCP for all web tasks — research, automation, data extraction, and verification. Check the user/ folder for user profile on first message.",
+      "color": "#FF6B9D",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "skill": "allow",
+        "task": "allow",
+        "webfetch": "allow"
+      }
+    },
+    "researcher": {
+      "description": "Deep web research subagent - navigates multiple sources, cross-references, and synthesizes findings",
+      "mode": "subagent",
+      "prompt": "You are a deep research specialist. Use Chrome DevTools MCP to navigate websites, extract data, cross-reference sources, and return structured findings. Always cite sources with URLs. Never guess — verify everything via the browser.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "skill": "allow"
+      }
+    }
+  },
+  "permission": {
+    "skill": {
+      "*": "allow"
+    }
+  }
+}

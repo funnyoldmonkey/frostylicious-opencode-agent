@@ -1,0 +1,27 @@
+# API Keys and secrets (NEVER commit these)
+api-key-rotator/keys.txt
+api-key-rotator/proxy-secret.txt
+
+# Session logs (local only)
+logs/*.md
+
+# Temp files
+tmp/
+
+# Playwright MCP cache
+.playwright-mcp/
+
+# Node modules
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Obsidian
+knowledge/.obsidian/
