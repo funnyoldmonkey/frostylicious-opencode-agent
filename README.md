@@ -4,7 +4,7 @@
 
 # Frostylicious — AI Research & Automation Assistant
 
-**A research-first AI agent for [OpenCode Desktop](https://opencode.ai) that controls your Chrome browser to research, automate, and get things done on the internet.**
+**A research-first AI agent for [OpenCode Desktop](https://opencode.ai) with webfetch-first research, Chrome DevTools for interactive tasks, a growing knowledge base, and auto-created skills.**
 
 [![OpenCode](https://img.shields.io/badge/OpenCode-Desktop-FF6B9D?style=for-the-badge)](https://opencode.ai)
 [![Chrome DevTools MCP](https://img.shields.io/badge/Chrome_DevTools-MCP-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.npmjs.com/package/chrome-devtools-mcp)
@@ -21,15 +21,16 @@
 
 ## What Is Frostylicious?
 
-Frostylicious is a general-purpose AI assistant that runs inside [OpenCode Desktop](https://opencode.ai) and controls your Chrome browser via Chrome DevTools. Unlike single-purpose agents, Frostylicious is a **generalist** — it can handle anything from deep web research to browser automation to technical debugging.
+Frostylicious is a general-purpose AI assistant that runs inside [OpenCode Desktop](https://opencode.ai). It uses `webfetch` for fast, lightweight research and escalates to Chrome DevTools for interactive browser tasks. It's a **generalist** — deep web research, browser automation, data extraction, content creation, technical debugging.
 
 **Core strengths:**
 
-- **Research-first mindset** — doesn't guess, verifies everything via the browser
-- **Full browser control** — navigates, clicks, fills forms, extracts data, takes screenshots
-- **AutoConnect** — uses your actual Chrome with all logged-in sessions (Gmail, Notion, Shopify, etc.)
-- **Self-improving** — auto-creates reusable skills for novel workflows
-- **Knowledge base** — grows smarter as you add context files
+- **Webfetch-first research** — fast lookups without opening browser tabs. Escalates to Chrome DevTools when pages need JS rendering or interaction.
+- **Full browser control** — navigates, clicks, fills forms, extracts data, takes screenshots via Chrome DevTools with AutoConnect
+- **@explore subagent** — searches the knowledge base before every task, returning only relevant context to save tokens
+- **Mandatory skill check** — always checks for existing skills before executing multi-step tasks
+- **Self-improving** — auto-creates reusable skills for novel workflows, logs verified workflows
+- **Session logging** — full audit trail of every non-trivial session
 - **User profile** — remembers who you are across sessions
 
 ---
@@ -55,6 +56,7 @@ Frostylicious is a general-purpose AI assistant that runs inside [OpenCode Deskt
 |---|---|
 | **OpenCode Desktop** | Download from [opencode.ai](https://opencode.ai) |
 | **Node.js** (v18+) | [nodejs.org](https://nodejs.org) — needed for Chrome DevTools MCP |
+| **Python 3.10+** | [python.org](https://python.org) — needed for the API key rotator and verified-workflows append |
 | **Git** | [git-scm.com](https://git-scm.com) |
 
 ### Step 1: Clone the Repository
@@ -108,34 +110,49 @@ On first message, Frostylicious will ask your name and save it for future sessio
 ### Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                   OpenCode Desktop                    │
-│  ┌──────────────┐  ┌────────────┐  ┌──────────────┐  │
-│  │ Frostylicious │  │ AGENTS.md  │  │  Knowledge   │  │
-│  │    Agent      │──│  (Rules)   │──│  (Growing)   │  │
-│  └──────┬───────┘  └────────────┘  └──────────────┘  │
-│         │                                             │
-│  ┌──────▼────────────────┐  ┌──────────────────────┐  │
-│  │  Chrome DevTools MCP  │  │  Skills (Auto-grow)  │  │
-│  │  (AutoConnect)        │  │  User Profile        │  │
-│  └──────┬────────────────┘  └──────────────────────┘  │
-└─────────┼─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                    OpenCode Desktop                       │
+│  ┌──────────────┐  ┌────────────┐  ┌──────────────────┐  │
+│  │ Frostylicious │  │ AGENTS.md  │  │  @explore        │  │
+│  │    Agent      │──│  (Rules)   │  │  (Knowledge      │  │
+│  └──────┬───────┘  └────────────┘  │   Search)        │  │
+│         │                          └──────────────────┘  │
+│  ┌──────▼────────────────┐  ┌──────────────────────────┐  │
+│  │  Chrome DevTools MCP  │  │  Skills (Auto-grow)      │  │
+│  │  (AutoConnect)        │  │  Verified Workflows      │  │
+│  └──────┬────────────────┘  └──────────────────────────┘  │
+└─────────┼────────────────────────────────────────────────┘
           │
-   ┌──────▼──────────────┐
-   │  Your Chrome Browser │
-   │  (All logged-in      │
-   │   sessions available) │
-   └──────────────────────┘
+   ┌──────▼──────────────┐     ┌───────────────────────┐
+   │  Your Chrome Browser │     │  webfetch             │
+   │  (Interactive tasks)  │     │  (Default research)   │
+   └──────────────────────┘     └───────────────────────┘
 ```
 
-### Research Flow
+### Task Flow
 
-1. You ask a question or give a task
-2. Frostylicious checks knowledge files for existing context
-3. If unsure → opens Chrome, searches Google or relevant sites
-4. Reads multiple sources, cross-references
-5. Synthesizes findings with citations
-6. Creates a skill if the workflow was novel
+When you give Frostylicious a task, it follows this sequence:
+
+1. **Understand** — parse the request, ask clarifying questions if needed
+2. **Research** — use `webfetch` for quick lookups, escalate to Chrome DevTools for JS-rendered or interactive pages
+3. **Consult @explore** (MANDATORY) — searches knowledge files for verified workflows and relevant context
+4. **Check skills** (MANDATORY) — lists and reads matching skills before executing
+5. **Execute** — perform the task using the appropriate tools
+6. **Verify** — double-check work, screenshot web tasks, spot-check data
+7. **Deliver** — present results with sources and next steps
+8. **Log session** — write audit trail to `logs/`
+9. **Log workflow** — if user confirms, append to `verified-workflows.md`
+10. **Create skill** — save novel patterns for future use
+
+### Knowledge System
+
+```
+knowledge/
+└── verified-workflows.md        ← Auto-maintained log of confirmed workflows
+└── (your files here)            ← Drop .md files to expand knowledge
+```
+
+Knowledge files are searched **on demand** by the `@explore` subagent. Frostylicious calls @explore before executing tasks — it searches verified workflows and knowledge files, returning only relevant context. Add new `.md` files anytime — @explore finds them on the next call.
 
 ### User Profile
 
@@ -150,13 +167,17 @@ frostylicious-opencode-agent/
 ├── .opencode/
 │   ├── AGENTS.md                    ← Agent personality, rules, and workflows
 │   └── skills/                      ← Auto-created skills (grows over time)
-├── knowledge/                       ← Your knowledge base (add .md files here)
+├── knowledge/
+│   └── verified-workflows.md        ← Auto-maintained workflow log
 ├── user/
 │   └── user.txt                     ← User profile (auto-created on first use)
 ├── tmp/                             ← Temporary working files
-├── logs/                            ← Session logs
-├── opencode.json                    ← Agent configuration
-├── opencode.jsonc                   ← MCP and provider config
+├── logs/                            ← Session logs (auto-created)
+├── api-key-rotator/
+│   ├── rotator.py                   ← Key rotation proxy
+│   └── keys.txt.example             ← Template for API keys
+├── opencode.json                    ← Agent and subagent configuration
+├── opencode.jsonc                   ← MCP servers and provider config
 ├── .gitignore
 └── README.md
 ```
@@ -169,6 +190,7 @@ Drop any `.md` file into `knowledge/` or create subfolders to organize by topic:
 
 ```
 knowledge/
+├── verified-workflows.md
 ├── company-info.md
 ├── product-docs.md
 ├── competitor-research/
@@ -179,7 +201,7 @@ knowledge/
     └── support-playbook.md
 ```
 
-All files are automatically loaded into Frostylicious's context on every session.
+@explore searches these on demand — no need to pre-load everything into context.
 
 ---
 
@@ -191,7 +213,7 @@ Edit `.opencode/AGENTS.md` — change the name, tone, role, and focus areas.
 
 ### Adding Domain Expertise
 
-Drop `.md` files into `knowledge/` with domain-specific information. Frostylicious automatically uses them.
+Drop `.md` files into `knowledge/` with domain-specific information. @explore finds and uses them automatically.
 
 ### Creating Manual Skills
 

@@ -2,15 +2,13 @@
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "frostylicious",
   "instructions": [
-    ".opencode/AGENTS.md",
-    "knowledge/*.md",
-    "knowledge/**/*.md"
+    ".opencode/AGENTS.md"
   ],
   "agent": {
     "frostylicious": {
-      "description": "Frostylicious - AI Research & Automation Assistant powered by Chrome DevTools",
+      "description": "Frostylicious - AI Research & Automation Assistant",
       "mode": "primary",
-      "prompt": "You are Frostylicious, a research-first AI assistant. Follow all rules in .opencode/AGENTS.md. Use Chrome DevTools MCP for all web tasks — research, automation, data extraction, and verification. Check the user/ folder for user profile on first message.",
+      "prompt": "You are Frostylicious, a research-first AI assistant. Follow all rules in .opencode/AGENTS.md. Use webfetch for research by default — Chrome DevTools only for interactive/visual tasks. Call @explore before executing tasks. Check user/ folder for user profile on first message.",
       "color": "#FF6B9D",
       "permission": {
         "edit": "allow",
@@ -21,15 +19,16 @@
         "webfetch": "allow"
       }
     },
-    "researcher": {
-      "description": "Deep web research subagent - navigates multiple sources, cross-references, and synthesizes findings",
+    "explore": {
+      "description": "Knowledge explorer — searches knowledge/ files for relevant workflows, patterns, and context. Call before executing tasks.",
       "mode": "subagent",
-      "prompt": "You are a deep research specialist. Use Chrome DevTools MCP to navigate websites, extract data, cross-reference sources, and return structured findings. Always cite sources with URLs. Never guess — verify everything via the browser.",
+      "prompt": "You are Frostylicious's knowledge explorer. Search the knowledge/ folder for information relevant to the current task.\n\nWhen called:\n1. Search knowledge/ files for terms related to the task (keywords, tools, patterns, domains).\n2. Read verified-workflows.md first — check for matching past workflows.\n3. Read other relevant files only if needed.\n4. Return ONLY the relevant information — specific workflows, patterns, tools, or context.\n5. If nothing relevant exists, say so clearly.\n6. Be concise — Frostylicious has limited context.\n\nYou are read-only. Do NOT modify files, run commands, or use the browser.",
       "permission": {
-        "edit": "allow",
-        "bash": "allow",
         "read": "allow",
-        "skill": "allow"
+        "edit": "deny",
+        "bash": "deny",
+        "skill": "deny",
+        "task": "deny"
       }
     }
   },

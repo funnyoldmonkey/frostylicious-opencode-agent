@@ -25,3 +25,6 @@ __pycache__/
 
 # Obsidian
 knowledge/.obsidian/
+
+# User
+user/user.txt
